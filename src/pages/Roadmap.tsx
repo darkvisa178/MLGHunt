@@ -174,7 +174,7 @@ const Roadmap = () => {
             Follow on Twitter
           </a>
           <a 
-            href="t.me/MLGHuntBot" 
+            href="https://t.me/MLGHuntBot" 
             target="_blank" 
             rel="noopener noreferrer"
             className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-6 rounded-full transition-colors"
