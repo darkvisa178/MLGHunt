@@ -45,7 +45,7 @@ const Footer = () => {
                 <Github size={24} />
               </motion.a>
               <motion.a 
-                href="t.me/MLGHuntBot" 
+                href="https://t.me/MLGHuntBot" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 whileHover={{ y: -3, color: '#5865F2' }}
