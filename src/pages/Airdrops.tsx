@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Check, AlertCircle } from 'lucide-react';
+import { Check, AlertCircle, Link as LinkIcon } from 'lucide-react';
 
 const Airdrops = () => {
   const [email, setEmail] = useState('');
@@ -8,6 +8,18 @@ const Airdrops = () => {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [telegramId, setTelegramId] = useState<string | null>(null);
+  const [referralLink, setReferralLink] = useState('');
+  const [showReferralCopied, setShowReferralCopied] = useState(false);
+
+  // Получаем Telegram ID из URL при загрузке компонента
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const tgParam = queryParams.get('tg');
+    if (tgParam) {
+      setTelegramId(tgParam);
+    }
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +50,26 @@ const Airdrops = () => {
       setSubmitted(true);
       setLoading(false);
     }, 1500);
+  };
+
+  // Функция для получения и копирования реферальной ссылки
+  const handleGetReferralLink = () => {
+    if (telegramId) {
+      const link = `https://t.me/MLGHuntBot?start=${telegramId}`;
+      setReferralLink(link);
+      
+      // Копируем ссылку в буфер обмена
+      navigator.clipboard.writeText(link)
+        .then(() => {
+          setShowReferralCopied(true);
+          setTimeout(() => setShowReferralCopied(false), 2000);
+        })
+        .catch(err => {
+          console.error('Не удалось скопировать ссылку: ', err);
+        });
+    } else {
+      setError('Для получения реферальной ссылки необходимо открыть приложение через Telegram бота');
+    }
   };
 
   return (
@@ -222,13 +254,44 @@ const Airdrops = () => {
               Refer your friends to MLGHunt and earn additional tokens for each successful referral.
             </p>
           </div>
-          <motion.button
-            className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-full transition-colors"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Get Referral Link
-          </motion.button>
+          <div>
+            <motion.button
+              className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-full transition-colors flex items-center justify-center"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleGetReferralLink}
+              disabled={!telegramId}
+            >
+              <LinkIcon size={18} className="mr-2" />
+              Get Referral Link
+            </motion.button>
+            
+            {showReferralCopied && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-2 text-sm bg-green-800 bg-opacity-70 p-2 rounded-lg"
+              >
+                Ссылка скопирована!
+              </motion.div>
+            )}
+            
+            {referralLink && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="mt-4 bg-purple-800 bg-opacity-50 p-3 rounded-lg text-sm overflow-hidden break-all"
+              >
+                {referralLink}
+              </motion.div>
+            )}
+            
+            {!telegramId && (
+              <div className="mt-2 text-sm text-yellow-400">
+                Откройте приложение через Telegram бота для получения реферальной ссылки
+              </div>
+            )}
+          </div>
         </div>
       </motion.div>
     </div>
