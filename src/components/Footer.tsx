@@ -27,7 +27,7 @@ const Footer = () => {
           <div className="flex flex-col items-center md:items-end">
             <div className="flex space-x-4 mb-4">
               <motion.a 
-                href="https://twitter.com" 
+                href="https://x.com/mlg_hunt" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 whileHover={{ y: -3, color: '#1DA1F2' }}
@@ -45,7 +45,7 @@ const Footer = () => {
                 <Github size={24} />
               </motion.a>
               <motion.a 
-                href="https://discord.com" 
+                href="t.me/MLGHuntBot" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 whileHover={{ y: -3, color: '#5865F2' }}
