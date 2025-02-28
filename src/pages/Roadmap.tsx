@@ -166,7 +166,7 @@ const Roadmap = () => {
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <a 
-            href="https://twitter.com" 
+            href="hhttps://x.com/mlg_hunt" 
             target="_blank" 
             rel="noopener noreferrer"
             className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-full transition-colors"
@@ -174,12 +174,12 @@ const Roadmap = () => {
             Follow on Twitter
           </a>
           <a 
-            href="https://discord.com" 
+            href="t.me/MLGHuntBot" 
             target="_blank" 
             rel="noopener noreferrer"
             className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-6 rounded-full transition-colors"
           >
-            Join Discord
+            Join Telegramm
           </a>
         </div>
       </motion.div>
