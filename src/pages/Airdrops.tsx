@@ -1,6 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Check, AlertCircle } from 'lucide-react';
+import { Check, AlertCircle, Link as LinkIcon } from 'lucide-react';
+
+// Добавляем типы для Telegram WebApp
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp?: {
+        initData: string;
+        initDataUnsafe: {
+          user?: {
+            id: number;
+            first_name: string;
+            last_name?: string;
+            username?: string;
+          };
+        };
+      };
+    };
+  }
+}
 
 const Airdrops = () => {
   const [email, setEmail] = useState('');
@@ -8,6 +27,30 @@ const Airdrops = () => {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [telegramUserId, setTelegramUserId] = useState<string | null>(null);
+  const [referralLink, setReferralLink] = useState('');
+  const [showReferralCopied, setShowReferralCopied] = useState(false);
+  const [referralError, setReferralError] = useState('');
+
+  // Получаем Telegram ID при загрузке компонента
+  useEffect(() => {
+    // Сначала пробуем получить из Telegram WebApp
+    if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
+      setTelegramUserId(window.Telegram.WebApp.initDataUnsafe.user.id.toString());
+      console.log("Получен ID из Telegram WebApp:", window.Telegram.WebApp.initDataUnsafe.user.id);
+      return;
+    }
+    
+    // Если не получилось, пробуем из URL-параметра
+    const queryParams = new URLSearchParams(window.location.search);
+    const tgParam = queryParams.get('tg');
+    if (tgParam) {
+      setTelegramUserId(tgParam);
+      console.log("Получен ID из URL параметра:", tgParam);
+    } else {
+      console.log("Telegram ID не найден");
+    }
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +81,65 @@ const Airdrops = () => {
       setSubmitted(true);
       setLoading(false);
     }, 1500);
+  };
+
+  // Обновленная функция для получения и копирования реферальной ссылки
+  const handleGetReferralLink = () => {
+    setReferralError('');
+    console.log("handleGetReferralLink вызван, telegramUserId:", telegramUserId);
+    
+    if (!telegramUserId) {
+      setReferralError('Не удалось получить Telegram ID. Пожалуйста, откройте приложение через Telegram бота.');
+      return;
+    }
+    
+    try {
+      const link = `https://t.me/MLGHuntBot?start=${telegramUserId}`;
+      setReferralLink(link);
+      console.log("Сгенерирована ссылка:", link);
+      
+      // Копируем ссылку в буфер обмена, если доступно API
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(link)
+          .then(() => {
+            console.log("Ссылка скопирована в буфер обмена");
+            setShowReferralCopied(true);
+            setTimeout(() => setShowReferralCopied(false), 3000);
+          })
+          .catch(err => {
+            console.error('Ошибка копирования:', err);
+            // Показываем ссылку, даже если не удалось скопировать
+            setReferralError('Не удалось скопировать ссылку автоматически. Пожалуйста, скопируйте её вручную.');
+          });
+      } else {
+        // Fallback для случаев, когда clipboard API недоступен
+        const textArea = document.createElement("textarea");
+        textArea.value = link;
+        textArea.style.position = "fixed";  // Избегаем прокрутки к области
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          const successful = document.execCommand('copy');
+          if (successful) {
+            console.log("Ссылка скопирована через execCommand");
+            setShowReferralCopied(true);
+            setTimeout(() => setShowReferralCopied(false), 3000);
+          } else {
+            setReferralError('Не удалось скопировать ссылку автоматически. Пожалуйста, скопируйте её вручную.');
+          }
+        } catch (err) {
+          console.error('Ошибка при использовании execCommand:', err);
+          setReferralError('Не удалось скопировать ссылку автоматически. Пожалуйста, скопируйте её вручную.');
+        }
+        
+        document.body.removeChild(textArea);
+      }
+    } catch (e) {
+      console.error('Ошибка в handleGetReferralLink:', e);
+      setReferralError('Произошла ошибка при создании реферальной ссылки');
+    }
   };
 
   return (
@@ -222,13 +324,56 @@ const Airdrops = () => {
               Refer your friends to MLGHunt and earn additional tokens for each successful referral.
             </p>
           </div>
-          <motion.button
-            className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-full transition-colors"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Get Referral Link
-          </motion.button>
+          <div className="w-full md:w-auto flex flex-col items-center">
+            <motion.button
+              className="w-full md:w-auto bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-full transition-colors flex items-center justify-center cursor-pointer"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleGetReferralLink}
+              onMouseDown={() => console.log("Кнопка: MouseDown")}
+              onMouseUp={() => console.log("Кнопка: MouseUp")}
+              type="button"
+            >
+              <LinkIcon size={18} className="mr-2" />
+              Get Referral Link
+            </motion.button>
+            
+            {showReferralCopied && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-2 text-sm bg-green-800 bg-opacity-70 p-2 rounded-lg"
+              >
+                Ссылка скопирована!
+              </motion.div>
+            )}
+            
+            {referralLink && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mt-4 w-full bg-purple-800 bg-opacity-50 p-3 rounded-lg text-sm overflow-hidden break-all"
+              >
+                {referralLink}
+              </motion.div>
+            )}
+            
+            {referralError && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mt-2 text-sm text-red-400 bg-red-900 bg-opacity-30 p-2 rounded-lg"
+              >
+                {referralError}
+              </motion.div>
+            )}
+            
+            {!telegramUserId && !referralError && (
+              <div className="mt-2 text-sm text-yellow-400">
+                Откройте приложение через Telegram бота для получения реферальной ссылки
+              </div>
+            )}
+          </div>
         </div>
       </motion.div>
     </div>
